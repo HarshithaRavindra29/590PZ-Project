@@ -67,5 +67,31 @@ def input_coordinates():
     """
     coord = click.prompt('Enter the the cell to be filled in the format\n  row, col, value')
     val = coord.split(',')
-    valid_coord = [int(x) for x in val if int(x)]
-    return valid_coord
+    input_coord = [int(x) for x in val if int(x)]
+    if len(input_coord) != 3:
+        input_coordinates()
+    return input_coord
+
+
+def check_continuity(current_board, input_coord):
+    """
+
+    :param current_board:
+    :param input_coord:
+    :return:
+    """
+    continuous = False
+    row = input_coord[0]
+    col = input_coord[1]
+    val = input_coord[2]
+    neighbors = [[row-1, col], [row+1, col], [row, col-1], [row, col+1]]
+    board_shape = current_board.shape
+    for [x, y] in neighbors:
+        if x < 0 or y < 0 or x >= board_shape[0] or y >= board_shape[1]:
+            continue
+        else:
+            cell_value = current_board[x, y]
+            if cell_value == 0 or cell_value == val:
+                continuous = True
+                break
+    return continuous
