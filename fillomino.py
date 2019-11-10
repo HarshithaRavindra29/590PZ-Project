@@ -7,6 +7,7 @@ Authors: Gaurav Dharra, Harshitha Ravindra
 import numpy as np
 import click
 
+
 def generate_grid(num_rows, num_columns):
     """
     Method that generates a 2d numpy array with all zero values for given number of row and column values.
@@ -15,7 +16,6 @@ def generate_grid(num_rows, num_columns):
     :return: Returns a 2d array of the required size with all zeros
     """
     return np.zeros((num_rows, num_columns), int)
-
 
 
 def game_level():
@@ -39,3 +39,22 @@ def game_level():
     return m, n
 
 
+def is_correct_solution(current_state, solution):
+    """
+    Method returns a boolean value indicating if the solution is correct based on the following:
+    - Validates if the board is filled
+    - If board is filled, compares it to the solution
+    :param current_state: 2d numpy array indicating the board filled based on the player input
+    :param solution: 2d numpy array indicating the predefined solution
+    :return: boolean indicating the correctness of the solution
+    """
+    if not np.count_nonzero(current_state) == np.size(current_state):
+        print('Board is not filled')
+        return False
+    else:
+        if np.array_equal(current_state, solution):
+            print('Correct solution')
+            return True
+        else:
+            print('Incorrect solution')
+            return False
