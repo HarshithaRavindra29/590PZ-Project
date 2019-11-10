@@ -39,22 +39,33 @@ def game_level():
     return m, n
 
 
-def is_correct_solution(current_state, solution):
+def is_correct_solution(current_board, solution):
     """
     Method returns a boolean value indicating if the solution is correct based on the following:
     - Validates if the board is filled
     - If board is filled, compares it to the solution
-    :param current_state: 2d numpy array indicating the board filled based on the player input
+    :param current_board: 2d numpy array indicating the board filled based on the player input
     :param solution: 2d numpy array indicating the predefined solution
     :return: boolean indicating the correctness of the solution
     """
-    if not np.count_nonzero(current_state) == np.size(current_state):
+    if not np.count_nonzero(current_board) == np.size(current_board):
         print('Board is not filled')
         return False
     else:
-        if np.array_equal(current_state, solution):
+        if np.array_equal(current_board, solution):
             print('Correct solution')
             return True
         else:
             print('Incorrect solution')
             return False
+
+
+def input_coordinates():
+    """
+    Asks for user inputs to populate the board
+    :return: User entered coordinate and value of the board
+    """
+    coord = click.prompt('Enter the the cell to be filled in the format\n  row, col, value')
+    val = coord.split(',')
+    valid_coord = [int(x) for x in val if int(x)]
+    return valid_coord
