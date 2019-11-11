@@ -81,10 +81,8 @@ def check_continuity(current_board, input_coord):
     :return:
     """
     continuous = False
-    row = input_coord[0]
-    col = input_coord[1]
     val = input_coord[2]
-    neighbors = [[row-1, col], [row+1, col], [row, col-1], [row, col+1]]
+    neighbors = get_neighbors(input_coord)
     board_shape = current_board.shape
     for [x, y] in neighbors:
         if x < 0 or y < 0 or x >= board_shape[0] or y >= board_shape[1]:
@@ -95,3 +93,46 @@ def check_continuity(current_board, input_coord):
                 continuous = True
                 break
     return continuous
+
+
+def get_neighbors(input_coord):
+    row = input_coord[0]
+    col = input_coord[1]
+    return [[row-1, col], [row+1, col], [row, col-1], [row, col+1]]
+
+
+def check_number_of_cells(current_board, input_coord, counter, has_zero_flag, previous_coord):
+    """
+    Performing BFS to compute number of cells.
+    :param current_board:
+    :param input_coord:
+    :param counter:
+    :return: boolean indicating if number of cells filled with the input value is valid
+    """
+    val = input_coord[2]
+    neighbors = get_neighbors(input_coord)
+    board_shape = current_board.shape
+
+    new_coord = []
+    for [x, y] in neighbors:
+        if x < 0 or y < 0 or x >= board_shape[0] or y >= board_shape[1] or [x, y] == previous_coord:
+            continue
+        else:
+            cell_value = current_board[x, y]
+            if cell_value == val:
+                counter += 1
+                new_coord.append([x,y])
+            elif cell_value == 0:
+                has_zero_flag = True
+
+    if len(new_coord) == 0:
+        if counter == val:
+            return True
+        elif has_zero_flag and counter<val:
+            return True
+        else:
+            return False
+    else:
+        for [x, y] in new_coord:
+            return check_number_of_cells(current_board, [x, y, current_board[x,y]], counter, has_zero_flag, [input_coord[0], input_coord[1]])
+
