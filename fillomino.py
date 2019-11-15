@@ -6,7 +6,7 @@ Authors: Gaurav Dharra, Harshitha Ravindra
 
 import numpy as np
 import click
-
+import math
 
 def generate_grid(num_rows, num_columns):
     """
@@ -135,4 +135,44 @@ def check_number_of_cells(current_board, input_coord, counter, has_zero_flag, pr
     else:
         for [x, y] in new_coord:
             return check_number_of_cells(current_board, [x, y, current_board[x,y]], counter, has_zero_flag, [input_coord[0], input_coord[1]])
+
+
+def generate_possible_numbers(grid_row, grid_col):
+    """
+    Generates a 2d list of numbers in a deterministic way based on the formula (1 / total_digits) * (grid_size / digit)
+    in an iterative manner. The iteration continues for a threshold of 95% of grid size.
+    Remaining values are filled by 1.
+    Additionally, counter can be updated later to increase complexity
+    :param grid_row:
+    :param grid_col:
+    :return: 2d list
+    """
+    if grid_col == 5:
+        total_digits = 5
+    elif grid_row == 20:
+        total_digits = 9
+    else:
+        total_digits = 7
+    grid_size = grid_row * grid_col
+    region_size = 0
+    num_list = []
+    # counter = 1
+    while region_size <= 0.95*grid_size:
+        for i in range(2, total_digits+1):
+            # for j in range(math.floor(counter*(grid_size-region_size)/(total_digits-1)/i)):
+            for j in range(math.floor((grid_size - region_size) / (total_digits - 1) / i)):
+                num_list.append([i]*i)
+        a = sum([len(x) for x in num_list])
+        if a == region_size:
+            break
+        else:
+            region_size = a
+            # counter += 1
+        print(region_size)
+
+    num_list.extend([[1]] * (grid_size-region_size))
+
+    return num_list
+
+
 
