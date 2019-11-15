@@ -6,16 +6,57 @@ Authors: Gaurav Dharra, Harshitha Ravindra
 
 import numpy as np
 import click
-import math
+import math, random
 
-def generate_grid(num_rows, num_columns):
+
+def generate_board(num_rows, num_columns):
     """
-    Method that generates a 2d numpy array with all zero values for given number of row and column values.
+    Method that generates a 2d numpy array with all zero values for
+    given number of row and column values.
     :param num_rows: integer indicating number of rows
     :param num_columns: integer indicating number of rows
+    :param list_digits:
     :return: Returns a 2d array of the required size with all zeros
     """
-    return np.zeros((num_rows, num_columns), int)
+    grid = np.zeros((num_rows, num_columns), int)
+    list_digits = generate_possible_numbers(num_rows, num_columns)
+    random.shuffle(list_digits)
+    list_digits = [j for i in list_digits for j in i]
+
+    counter = 0
+
+    for x in range(num_rows):
+        for y in range(num_columns):
+            print(counter)
+            if grid[x, y] == 0:
+                if counter < len(list_digits):
+                    grid[x, y] = list_digits[counter]
+                    j = grid[x, y]
+                    counter += 1
+                    coord = [x, y]
+                    while j > 1:
+                        neighbor = get_neighbors(coord)
+                        neighbor = [[m, n] for (m, n) in neighbor
+                                    if 0 <= m < num_rows and 0 <= n < num_columns
+                                    and grid[m, n] == 0]
+                        # TODO: Think of a logic for back tracing if no neighbors are found
+                        if len(neighbor) > 0:
+                            neighbor = random.choice(neighbor)
+                            if counter < len(list_digits):
+                                grid[neighbor[0], neighbor[1]] = list_digits[counter]
+                            else:
+                                break
+                            counter += 1
+                            coord = [neighbor[0], neighbor[1]]
+                            j -= 1
+                        elif len(neighbor) == 0:
+                            break
+                        print(grid)
+                else:
+                    # TODO: Logic to append 1s in the grid
+                    grid[x, y] = 1
+                    counter += 1
+            print(grid)
 
 
 def game_level():
@@ -107,7 +148,9 @@ def check_number_of_cells(current_board, input_coord, counter, has_zero_flag, pr
     :param current_board:
     :param input_coord:
     :param counter:
-    :return: boolean indicating if number of cells filled with the input value is valid
+    :param has_zero_flag:
+    :param previous_coord:
+    :return:
     """
     val = input_coord[2]
     neighbors = get_neighbors(input_coord)
@@ -170,9 +213,9 @@ def generate_possible_numbers(grid_row, grid_col):
             # counter += 1
         print(region_size)
 
-    num_list.extend([[1]] * (grid_size-region_size))
+    # num_list.extend([[1]] * (grid_size-region_size))
 
     return num_list
 
 
-
+generate_board(10, 5)
