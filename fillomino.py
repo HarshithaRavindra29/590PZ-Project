@@ -7,7 +7,8 @@ Authors: Gaurav Dharra, Harshitha Ravindra
 import numpy as np
 import click
 from scipy.ndimage import label, generate_binary_structure
-import math, random
+import math
+import random
 
 
 def generate_board(num_rows, num_columns):
@@ -138,6 +139,11 @@ def check_continuity(current_board, input_coord):
 
 
 def get_neighbors(input_coord):
+    """
+
+    :param input_coord:
+    :return:
+    """
     row = input_coord[0]
     col = input_coord[1]
     return [[row-1, col], [row+1, col], [row, col-1], [row, col+1]]
