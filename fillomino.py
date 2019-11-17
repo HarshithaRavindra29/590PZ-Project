@@ -6,6 +6,7 @@ Authors: Gaurav Dharra, Harshitha Ravindra
 
 import numpy as np
 import click
+from scipy.ndimage import label, generate_binary_structure
 import math, random
 
 
@@ -218,4 +219,40 @@ def generate_possible_numbers(grid_row, grid_col):
     return num_list
 
 
-generate_board(10, 5)
+def get_masked_array(board):
+    """
+
+    :param board:
+    :return: labeled array
+    """
+    elements = np.unique(board)
+    to_mask_board = np.zeros(board.shape)
+    labeled_array = []
+    num_features = []
+    for i in elements:
+        truth_board = (board == i)
+        truth_board_val = board * truth_board
+        each_labeled_array, each_num_features = label(truth_board_val)
+        labeled_array.append(each_labeled_array)
+        num_features.append(each_num_features)
+    return labeled_array, num_features
+
+
+def mask_board(board):
+    """
+
+    :param board:
+    :return:
+    """
+    labeled_array, num_features = get_masked_array(board)
+    to_mask_board = np.zeros(board.shape)
+    for i in range(len(num_features)):
+        for j in range(1, num_features[i] + 1):
+            masked_matrix = (labeled_array[i] == j)
+            indices = np.where(masked_matrix)
+            to_keep = np.random.choice(range(len(indices[1])))
+            to_mask_board[indices[0][to_keep], indices[1][to_keep]] = 1
+    masked_board = board * to_mask_board
+    return masked_board
+
+
