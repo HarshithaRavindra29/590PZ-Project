@@ -9,6 +9,45 @@ import click
 from scipy.ndimage import label, generate_binary_structure
 import math
 import random
+import copy
+
+
+def get_masked_array(board):
+    """
+
+    :param board:
+    :return: labeled array
+    """
+    elements = np.unique(board)
+    to_mask_board = np.zeros(board.shape)
+    labeled_array = []
+    num_features = []
+    for i in elements:
+        truth_board = (board == i)
+        truth_board_val = board * truth_board
+        each_labeled_array, each_num_features = label(truth_board_val)
+        labeled_array.append(each_labeled_array)
+        num_features.append(each_num_features)
+    return labeled_array, num_features
+
+
+def shuffle_digits(list_digits):
+    result = []
+    len_result = len(result)
+
+    duplicate_list = copy.deepcopy(list_digits)
+    print(duplicate_list)
+
+    while len(result) < len(list_digits):
+        elem = random.choice(duplicate_list)
+        if len_result == 0:
+            result.append(elem)
+            duplicate_list.pop(duplicate_list.index(elem))
+        elif elem != result[-1]:
+            result.append(elem)
+            duplicate_list.pop(duplicate_list.index(elem))
+
+    return result
 
 
 def generate_board(num_rows, num_columns):
@@ -17,49 +56,76 @@ def generate_board(num_rows, num_columns):
     given number of row and column values.
     :param num_rows: integer indicating number of rows
     :param num_columns: integer indicating number of rows
-    :param list_digits:
     :return: Returns a 2d array of the required size with all zeros
     """
     grid = np.zeros((num_rows, num_columns), int)
     list_digits = generate_possible_numbers(num_rows, num_columns)
-    random.shuffle(list_digits)
+    list_digits = shuffle_digits(list_digits)
     list_digits = [j for i in list_digits for j in i]
 
     counter = 0
-
-    for x in range(num_rows):
-        for y in range(num_columns):
-            print(counter)
+    grid_positions_not_filled = [[x, y] for x in range(num_rows) for y in range(num_columns)]
+    copied_version = copy.deepcopy(grid_positions_not_filled)
+    is_grid_valid = False
+    while not is_grid_valid:
+        while len(grid_positions_not_filled) > 0:
+            x = grid_positions_not_filled[0][0]
+            y = grid_positions_not_filled[0][1]
             if grid[x, y] == 0:
                 if counter < len(list_digits):
                     grid[x, y] = list_digits[counter]
-                    j = grid[x, y]
+                    total_iterations = j = grid[x, y]
                     counter += 1
                     coord = [x, y]
+                    grid_positions_not_filled.remove(coord)
+                    previous_coord = {}
                     while j > 1:
                         neighbor = get_neighbors(coord)
                         neighbor = [[m, n] for (m, n) in neighbor
                                     if 0 <= m < num_rows and 0 <= n < num_columns
-                                    and grid[m, n] == 0]
-                        # TODO: Think of a logic for back tracing if no neighbors are found
+                                    and grid[m, n] == 0
+                                    and grid[m, n] != total_iterations]
+                        previous_coord[(coord[0], coord[1])] = neighbor
                         if len(neighbor) > 0:
                             neighbor = random.choice(neighbor)
                             if counter < len(list_digits):
                                 grid[neighbor[0], neighbor[1]] = list_digits[counter]
-                            else:
-                                break
-                            counter += 1
-                            coord = [neighbor[0], neighbor[1]]
-                            j -= 1
+                                grid_positions_not_filled.remove(neighbor)
+                                counter += 1
+                                coord = [neighbor[0], neighbor[1]]
+                                j -= 1
                         elif len(neighbor) == 0:
-                            break
-                        print(grid)
+                            grid[coord[0], coord[1]] = 0
+                            grid_positions_not_filled.append([coord[0], coord[1]])
+                            counter -= 1
+                            previous_coord.popitem()
+                            if len(previous_coord) > 0:
+                                neighbors_prev = previous_coord.get(list(previous_coord.keys())[-1])
+                                neighbors_prev.remove(coord)
+                                if len(neighbors_prev) > 0:
+                                    coord = random.choice(neighbors_prev)
+                                    grid[coord[0], coord[1]] = list_digits[counter]
+                                    grid_positions_not_filled.remove(coord)
+                                    counter += 1
+                                    j -= 1
+                                else:
+                                    j = 1
+                            else:
+                                if grid[coord[0], coord[1]] != 0:
+                                    grid[coord[0], coord[1]] = 0
+                                    counter -= 1
+                                    grid_positions_not_filled.append([coord[0], coord[1]])
+                                j = 1
                 else:
-                    # TODO: Logic to append 1s in the grid
                     grid[x, y] = 1
+                    grid_positions_not_filled.remove([x, y])
                     counter += 1
-            print(grid)
-
+        labeled_array, num_features = get_masked_array(grid)
+        elements = np.unique(grid)
+        for idx, i in enumerate(elements):
+            print(idx, i)
+        is_grid_valid = True
+    return grid
 
 def game_level():
     """
@@ -225,25 +291,6 @@ def generate_possible_numbers(grid_row, grid_col):
     return num_list
 
 
-def get_masked_array(board):
-    """
-
-    :param board:
-    :return: labeled array
-    """
-    elements = np.unique(board)
-    to_mask_board = np.zeros(board.shape)
-    labeled_array = []
-    num_features = []
-    for i in elements:
-        truth_board = (board == i)
-        truth_board_val = board * truth_board
-        each_labeled_array, each_num_features = label(truth_board_val)
-        labeled_array.append(each_labeled_array)
-        num_features.append(each_num_features)
-    return labeled_array, num_features
-
-
 def mask_board(board):
     """
 
@@ -260,5 +307,3 @@ def mask_board(board):
             to_mask_board[indices[0][to_keep], indices[1][to_keep]] = 1
     masked_board = board * to_mask_board
     return masked_board
-
-
