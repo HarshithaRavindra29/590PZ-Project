@@ -32,6 +32,11 @@ def get_masked_array(board):
 
 
 def shuffle_digits(list_digits):
+    """
+
+    :param list_digits:
+    :return:
+    """
     result = []
     len_result = len(result)
 
@@ -58,16 +63,19 @@ def generate_board(num_rows, num_columns):
     :param num_columns: integer indicating number of rows
     :return: Returns a 2d array of the required size with all zeros
     """
-    grid = np.zeros((num_rows, num_columns), int)
-    list_digits = generate_possible_numbers(num_rows, num_columns)
-    list_digits = shuffle_digits(list_digits)
-    list_digits = [j for i in list_digits for j in i]
-
-    counter = 0
-    grid_positions_not_filled = [[x, y] for x in range(num_rows) for y in range(num_columns)]
-    copied_version = copy.deepcopy(grid_positions_not_filled)
+    list_digits_2d = generate_possible_numbers(num_rows, num_columns)
+    # list_digits_2d = shuffle_digits(list_digits_2d)
+    # list_digits = [j for i in list_digits_2d for j in i]
     is_grid_valid = False
+    iteration = 0
     while not is_grid_valid:
+        list_digits_2d = shuffle_digits(list_digits_2d)
+        # random.shuffle(list_digits_2d)
+        list_digits = [j for i in list_digits_2d for j in i]
+        grid = np.zeros((num_rows, num_columns), int)
+        counter = 0
+        grid_positions_not_filled = [[x, y] for x in range(num_rows) for y in range(num_columns)]
+        print('I am here ', (iteration + 1))
         while len(grid_positions_not_filled) > 0:
             x = grid_positions_not_filled[0][0]
             y = grid_positions_not_filled[0][1]
@@ -94,6 +102,8 @@ def generate_board(num_rows, num_columns):
                                 counter += 1
                                 coord = [neighbor[0], neighbor[1]]
                                 j -= 1
+                            else:
+                                j = 1
                         elif len(neighbor) == 0:
                             grid[coord[0], coord[1]] = 0
                             grid_positions_not_filled.append([coord[0], coord[1]])
@@ -109,23 +119,35 @@ def generate_board(num_rows, num_columns):
                                     counter += 1
                                     j -= 1
                                 else:
+                                    if grid[coord[0], coord[1]] != 0:
+                                        grid[coord[0], coord[1]] = 0
+                                        counter -= 1
+                                        grid_positions_not_filled.append([coord[0], coord[1]])
                                     j = 1
                             else:
-                                if grid[coord[0], coord[1]] != 0:
-                                    grid[coord[0], coord[1]] = 0
-                                    counter -= 1
-                                    grid_positions_not_filled.append([coord[0], coord[1]])
+                                counter += 1
                                 j = 1
                 else:
                     grid[x, y] = 1
                     grid_positions_not_filled.remove([x, y])
                     counter += 1
+        print('Grid Generated = ')
+        print(grid)
         labeled_array, num_features = get_masked_array(grid)
         elements = np.unique(grid)
-        for idx, i in enumerate(elements):
-            print(idx, i)
+        print('I am getting features', num_features)
         is_grid_valid = True
+        for idx, i in enumerate(elements):
+            if i == 1:
+                continue
+            else:
+                if list_digits.count(i)/i != num_features[idx]:
+                    print('Oops! Seems like the grid is not the best!')
+                    is_grid_valid = is_grid_valid and False
+        if not is_grid_valid:
+            iteration += 1
     return grid
+
 
 def game_level():
     """
@@ -264,7 +286,7 @@ def generate_possible_numbers(grid_row, grid_col):
     :return: 2d list
     """
     if grid_col == 5:
-        total_digits = 5
+        total_digits = 6
     elif grid_row == 20:
         total_digits = 9
     else:
@@ -307,3 +329,6 @@ def mask_board(board):
             to_mask_board[indices[0][to_keep], indices[1][to_keep]] = 1
     masked_board = board * to_mask_board
     return masked_board
+
+
+generate_board(10, 5)
