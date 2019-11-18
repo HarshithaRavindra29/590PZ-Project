@@ -203,8 +203,10 @@ def input_coordinates():
     """
     coord = click.prompt('Enter the the cell to be filled in the format\n  row, col, value')
     val = coord.split(',')
-    input_coord = [int(x) for x in val if int(x)]
+    # TODO validation on only int input within range of m and n needs to be implemented
+    input_coord = [int(x) for x in val]
     if len(input_coord) != 3:
+        print("Wrong input, try again")
         input_coordinates()
     return input_coord
 
