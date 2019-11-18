@@ -125,6 +125,7 @@ def generate_board(num_rows, num_columns):
                                         grid_positions_not_filled.append([coord[0], coord[1]])
                                     j = 1
                             else:
+                                # TODO: This logic of setting counter+=1 is inaccurate and needs to be checked
                                 counter += 1
                                 j = 1
                 else:
