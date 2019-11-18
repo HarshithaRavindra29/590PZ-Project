@@ -14,12 +14,14 @@ import copy
 
 def get_masked_array(board):
     """
-
+    This function generates a board that has the shape of each of the elements using scipy.
+    it is used in couple of functions below,
+    1. using the shape of the elements to hide other elements and keep 1
+    2. To generate board
     :param board:
-    :return: labeled array
+    :return: labeled array and number of regions
     """
     elements = np.unique(board)
-    to_mask_board = np.zeros(board.shape)
     labeled_array = []
     num_features = []
     for i in elements:
@@ -33,9 +35,11 @@ def get_masked_array(board):
 
 def shuffle_digits(list_digits):
     """
-
+    This function takes the list of digits and shuffles them in such a way that the neighbouring list
+    is not same as the current list. This would help when we are adding the numbers in the matrix, we can
+    avoid horizontally adjoining regions
     :param list_digits:
-    :return:
+    :return: list of lists with different element in the neighbouring list
     """
     result = []
     len_result = len(result)
@@ -57,11 +61,11 @@ def shuffle_digits(list_digits):
 
 def generate_board(num_rows, num_columns):
     """
-    Method that generates a 2d numpy array with all zero values for
+    Method that generates a 2d numpy array of game for
     given number of row and column values.
     :param num_rows: integer indicating number of rows
     :param num_columns: integer indicating number of rows
-    :return: Returns a 2d array of the required size with all zeros
+    :return: Returns a 2d array of the required size Game board
     """
     list_digits_2d = generate_possible_numbers(num_rows, num_columns)
     # list_digits_2d = shuffle_digits(list_digits_2d)
@@ -152,8 +156,8 @@ def generate_board(num_rows, num_columns):
 
 def game_level():
     """
-
-    :return:
+    Takes user input on the game level and returns the size of the corresponding board
+    :return: row and column size of the board
     """
     game_option = click.prompt('Please select difficulty level: \n \
         Enter 1 for easy (10 X 5) \n  \
@@ -207,10 +211,12 @@ def input_coordinates():
 
 def check_continuity(current_board, input_coord):
     """
-
+    As the player inputs the the coordinates to populate the board, this function checks if
+    the player is giving values for a continous region, if not it would
+    promt the player
     :param current_board:
     :param input_coord:
-    :return:
+    :return: Boolean
     """
     continuous = False
     val = input_coord[2]
@@ -229,9 +235,9 @@ def check_continuity(current_board, input_coord):
 
 def get_neighbors(input_coord):
     """
-
+    This function is used to get the neighbours of the cell of interest in the board
     :param input_coord:
-    :return:
+    :return: Values of the neighbouring cells
     """
     row = input_coord[0]
     col = input_coord[1]
@@ -316,9 +322,12 @@ def generate_possible_numbers(grid_row, grid_col):
 
 def mask_board(board):
     """
-
+    This function takes the generated board and hides elements and creates a puzzle for the
+    player to solve.
+    For every type of number, only 1 element is displayed. for example if the board is [[1,2,2],[2,3,3],[2,1,3]]
+    [[1,2,0],[0,3,0],[2,1,0]] is created.
     :param board:
-    :return:
+    :return: Hidden board for the player to solve
     """
     labeled_array, num_features = get_masked_array(board)
     to_mask_board = np.zeros(board.shape)
