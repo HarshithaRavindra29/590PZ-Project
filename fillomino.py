@@ -68,13 +68,10 @@ def generate_board(num_rows, num_columns):
     :return: Returns a 2d array of the required size Game board
     """
     list_digits_2d = generate_possible_numbers(num_rows, num_columns)
-    # list_digits_2d = shuffle_digits(list_digits_2d)
-    # list_digits = [j for i in list_digits_2d for j in i]
     is_grid_valid = False
     iteration = 0
     while not is_grid_valid:
-        list_digits_2d = shuffle_digits(list_digits_2d)
-        # random.shuffle(list_digits_2d)
+        random.shuffle(list_digits_2d)
         list_digits = [j for i in list_digits_2d for j in i]
         grid = np.zeros((num_rows, num_columns), int)
         counter = 0
@@ -129,8 +126,8 @@ def generate_board(num_rows, num_columns):
                                         grid_positions_not_filled.append([coord[0], coord[1]])
                                     j = 1
                             else:
-                                # TODO: This logic of setting counter+=1 is inaccurate and needs to be checked
-                                counter += 1
+                                grid[coord[0], coord[1]] = 1
+                                grid_positions_not_filled.remove([coord[0], coord[1]])
                                 j = 1
                 else:
                     grid[x, y] = 1
@@ -138,10 +135,10 @@ def generate_board(num_rows, num_columns):
                     counter += 1
         print('Grid Generated = ')
         print(grid)
+        is_grid_valid = True
         labeled_array, num_features = get_masked_array(grid)
         elements = np.unique(grid)
         print('I am getting features', num_features)
-        is_grid_valid = True
         for idx, i in enumerate(elements):
             if i == 1:
                 continue
@@ -149,6 +146,12 @@ def generate_board(num_rows, num_columns):
                 if list_digits.count(i)/i != num_features[idx]:
                     print('Oops! Seems like the grid is not the best!')
                     is_grid_valid = is_grid_valid and False
+                else:
+                    for j in range(1, num_features[idx]+1):
+                        counter_board = labeled_array[idx] == j
+                        if np.count_nonzero(counter_board) != i:
+                            is_grid_valid = is_grid_valid and False
+
         if not is_grid_valid:
             iteration += 1
     return grid
@@ -256,6 +259,7 @@ def check_number_of_cells(current_board, input_coord, counter, has_zero_flag, pr
     :param previous_coord:
     :return:
     """
+    print("checking for", input_coord)
     val = input_coord[2]
     neighbors = get_neighbors(input_coord)
     board_shape = current_board.shape
@@ -268,20 +272,21 @@ def check_number_of_cells(current_board, input_coord, counter, has_zero_flag, pr
             cell_value = current_board[x, y]
             if cell_value == val:
                 counter += 1
-                new_coord.append([x,y])
+                new_coord.append([x, y])
             elif cell_value == 0:
                 has_zero_flag = True
 
     if len(new_coord) == 0:
         if counter == val:
             return True
-        elif has_zero_flag and counter<val:
+        elif has_zero_flag and counter < val:
             return True
         else:
             return False
     else:
         for [x, y] in new_coord:
-            return check_number_of_cells(current_board, [x, y, current_board[x,y]], counter, has_zero_flag, [input_coord[0], input_coord[1]])
+            return check_number_of_cells(current_board, [x, y, current_board[x, y]], counter, has_zero_flag,
+                                         [input_coord[0], input_coord[1]])
 
 
 def generate_possible_numbers(grid_row, grid_col):
@@ -299,7 +304,7 @@ def generate_possible_numbers(grid_row, grid_col):
     elif grid_row == 20:
         total_digits = 9
     else:
-        total_digits = 7
+        total_digits = 9
     grid_size = grid_row * grid_col
     region_size = 0
     num_list = []
@@ -332,7 +337,7 @@ def mask_board(board):
     :return: Hidden board for the player to solve
     """
     labeled_array, num_features = get_masked_array(board)
-    to_mask_board = np.zeros(board.shape)
+    to_mask_board = np.zeros(board.shape, dtype=int)
     for i in range(len(num_features)):
         for j in range(1, num_features[i] + 1):
             masked_matrix = (labeled_array[i] == j)
@@ -387,12 +392,13 @@ def game(original_player_board, board):
 
 
 if __name__ == '__main__':
-    #num_rows, num_cols = game_level()
-    #board = generate_board(num_rows, num_cols)
-    num_rows, num_cols = 4, 4
-    board = np.array([[3, 3, 2, 2], [3, 1, 3, 3], [1, 4, 4, 3], [2, 2, 4, 4]])
+    num_rows, num_cols = game_level()
+    board = generate_board(num_rows, num_cols)
+    # num_rows, num_cols = 4, 4
+    # board = np.array([[3, 3, 2, 2], [3, 1, 3, 3], [1, 4, 4, 3], [2, 2, 4, 4]])
     original_player_board = mask_board(board)
     game(original_player_board, board)
     # Todo currently, the game checks for solutions when all the empty cells are filled,
     #  however, if the player wants to change only couple of filled cells, it cannot happen after all cells are filled.
     #  Can work on another prompt - but need to modify the while loop in game function
+
