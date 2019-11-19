@@ -343,4 +343,56 @@ def mask_board(board):
     return masked_board
 
 
-generate_board(10, 5)
+
+def game(original_player_board, board):
+    """
+    This is the main interface function,
+    This function calls the input functions, calls the validity function and
+    game over function.
+    It prints the outcome of the game - if the solution is correct, the game stops
+    if not, it asks for prompt and starts a new input from the player
+    :param original_player_board:
+    :param board:
+    :return: Outcome
+    """
+    player_board = copy.deepcopy(original_player_board)
+    print("Starting board")
+    print(player_board)
+
+    # immutable cells - player cannot replace these cells
+    fixed_cells = np.nonzero(player_board)
+    fixed_cell_list = [(fixed_cells[0][i], fixed_cells[1][i]) for i in range(len(fixed_cells[0]))]
+    while np.size(player_board) - np.count_nonzero(player_board) != 0:
+        coord_added = input_coordinates()
+        row, col, val = coord_added[0], coord_added[1], coord_added[2]
+        # Check if the entered input is not in the fixed cell list
+        if (row, col) in fixed_cell_list:
+            print("This cell cannot be modified.. Try again")
+        else:
+            # Check if the entered value is continous
+            if check_continuity(player_board, coord_added):
+                player_board[row, col] = val
+                print("Player updated board")
+                print(player_board)
+            else:
+                print("Continuity check failed, please try again")
+    # Todo need to implement the number of continous elements functions, currently it has too many input pararmeters
+    if is_correct_solution(current_board=player_board, solution=board):
+        print("Congratulations, You have successfully solved the puzzle!!!")
+    else:
+        print("Sorry, your solution is incorrect")
+        if click.confirm("Do you want to give it another try?"):
+            game(original_player_board, board)
+
+
+
+if __name__ == '__main__':
+    #num_rows, num_cols = game_level()
+    #board = generate_board(num_rows, num_cols)
+    num_rows, num_cols = 4, 4
+    board = np.array([[3, 3, 2, 2], [3, 1, 3, 3], [1, 4, 4, 3], [2, 2, 4, 4]])
+    original_player_board = mask_board(board)
+    game(original_player_board, board)
+    # Todo currently, the game checks for solutions when all the empty cells are filled,
+    #  however, if the player wants to change only couple of filled cells, it cannot happen after all cells are filled.
+    #  Can work on another prompt - but need to modify the while loop in game function
