@@ -149,20 +149,29 @@ def game_level():
     Takes user input on the game level and returns the size of the corresponding board
     :return: row and column size of the board
     """
+    # game_option = click.prompt('Please select difficulty level: \n \
+    #     Enter 1 for easy (10 X 5) \n  \
+    #     Enter 2 for medium (10 X 10) \n \
+    #     Enter 3 for difficult (10 X 15)', type=click.IntRange(1, 3))
+
     game_option = click.prompt('Please select difficulty level: \n \
-        Enter 1 for easy (10 X 5) \n  \
-        Enter 2 for medium (10 X 10) \n \
-        Enter 3 for difficult (10 X 15)', type=click.IntRange(1, 3))
-    if game_option == 1:
-        m = 10
-        n = 5
-    elif game_option == 2:
-        m = 10
-        n = 10
-    else:
-        m = 10
-        n = 15
-    return m, n
+        Enter 1 for easy \n  \
+        Enter 2 for medium \n \
+        Enter 3 for difficult', type=click.IntRange(1, 3))
+
+    m = 10
+    n = 5
+
+    # if game_option == 1:
+    #     m = 10
+    #     n = 5
+    # elif game_option == 2:
+    #     m = 10
+    #     n = 10
+    # else:
+    #     m = 10
+    #     n = 15
+    return m, n, game_option
 
 
 def is_correct_solution(current_board, solution):
@@ -255,7 +264,6 @@ def check_number_of_cells(current_board, input_coord):
     return True
 
 
-
 def generate_possible_numbers(grid_row, grid_col):
     """
     Generates a 2d list of numbers in a deterministic way based on the formula (1 / total_digits) * (grid_size / digit)
@@ -293,13 +301,14 @@ def generate_possible_numbers(grid_row, grid_col):
     return num_list
 
 
-def mask_board(board):
+def mask_board(board, level):
     """
     This function takes the generated board and hides elements and creates a puzzle for the
     player to solve.
     For every type of number, only 1 element is displayed. for example if the board is [[1,2,2],[2,3,3],[2,1,3]]
     [[1,2,0],[0,3,0],[2,1,0]] is created.
     :param board:
+    :param level:
     :return: Hidden board for the player to solve
     """
     labeled_array, num_features = get_masked_array(board)
@@ -311,6 +320,16 @@ def mask_board(board):
             to_keep = np.random.choice(range(len(indices[1])))
             to_mask_board[indices[0][to_keep], indices[1][to_keep]] = 1
     masked_board = board * to_mask_board
+
+    number_of_hints = 6 if level == 1 else 3
+
+    if level != 3:
+        zero_coord = np.where(masked_board == 0)
+        list_zero_coord = [[zero_coord[0][i],zero_coord[1][i]] for i in range(len(zero_coord[0]))]
+        chosen_zero_coord = random.sample(list_zero_coord, number_of_hints)
+        for [i, j] in chosen_zero_coord:
+            masked_board[i][j] = board[i][j]
+
     return masked_board
 
 
@@ -357,18 +376,14 @@ def game(original_player_board, board, list_features):
             game(original_player_board, board)
 
 
-
 if __name__ == '__main__':
-    num_rows, num_cols = game_level()
+    num_rows, num_cols, level = game_level()
     board, list_features, iteration = generate_board(num_rows, num_cols)
     print("No. of iterations to generate the board = ", iteration)
     print('Board Generated = ')
     print(board)
     # num_rows, num_cols = 4, 4
     # board = np.array([[3, 3, 2, 2], [3, 1, 3, 3], [1, 4, 4, 3], [2, 2, 4, 4]])
-    original_player_board = mask_board(board)
+    original_player_board = mask_board(board, level)
     game(original_player_board, board, list_features)
-    # Todo currently, the game checks for solutions when all the empty cells are filled,
-    #  however, if the player wants to change only couple of filled cells, it cannot happen after all cells are filled.
-    #  Can work on another prompt - but need to modify the while loop in game function
 
