@@ -236,44 +236,24 @@ def get_neighbors(input_coord):
     return [[row-1, col], [row+1, col], [row, col-1], [row, col+1]]
 
 
-def check_number_of_cells(current_board, input_coord, counter, has_zero_flag, previous_coord):
+def check_number_of_cells(current_board, input_coord):
     """
     Performing BFS to compute number of cells.
     :param current_board:
     :param input_coord:
-    :param counter:
-    :param has_zero_flag:
-    :param previous_coord:
     :return:
     """
-    print("checking for", input_coord)
     val = input_coord[2]
-    neighbors = get_neighbors(input_coord)
-    board_shape = current_board.shape
+    cloned_board = copy.deepcopy(current_board)
+    cloned_board[input_coord[0], input_coord[1]] = val
+    labeled_board, num_feat = get_masked_array(cloned_board)
+    label_to_be_verified = labeled_board[val]
+    feature_number = label_to_be_verified[input_coord[0], input_coord[1]]
+    feature_length = np.count_nonzero(label_to_be_verified == feature_number)
+    if feature_length > val:
+        return False
+    return True
 
-    new_coord = []
-    for [x, y] in neighbors:
-        if x < 0 or y < 0 or x >= board_shape[0] or y >= board_shape[1] or [x, y] == previous_coord:
-            continue
-        else:
-            cell_value = current_board[x, y]
-            if cell_value == val:
-                counter += 1
-                new_coord.append([x, y])
-            elif cell_value == 0:
-                has_zero_flag = True
-
-    if len(new_coord) == 0:
-        if counter == val:
-            return True
-        elif has_zero_flag and counter < val:
-            return True
-        else:
-            return False
-    else:
-        for [x, y] in new_coord:
-            return check_number_of_cells(current_board, [x, y, current_board[x, y]], counter, has_zero_flag,
-                                         [input_coord[0], input_coord[1]])
 
 
 def generate_possible_numbers(grid_row, grid_col):
@@ -357,16 +337,18 @@ def game(original_player_board, board, list_features):
         row, col, val = coord_added[0], coord_added[1], coord_added[2]
         # Check if the entered input is not in the fixed cell list
         if (row, col) in fixed_cell_list:
-            print("This cell cannot be modified.. Try again")
+            print("This cell cannot be modified.. Please try again..")
         else:
             # Check if the entered value is continous
             if check_continuity(player_board, coord_added):
-                player_board[row, col] = val
-                print("Player updated board")
-                print(player_board)
+                if check_number_of_cells(player_board, coord_added):
+                    player_board[row, col] = val
+                    print("Player updated board")
+                    print(player_board)
+                else:
+                    print("This number exceeds the allowed length for the region.. Please try again..")
             else:
                 print("Continuity check failed, please try again")
-    # TODO: need to implement the number of continous elements functions, currently it has too many input pararmeters
     if check_board_valid(player_board, list_features):
         print("Congratulations, You have successfully solved the puzzle!!!")
     else:
