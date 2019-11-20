@@ -256,7 +256,10 @@ def check_number_of_cells(current_board, input_coord):
     cloned_board = copy.deepcopy(current_board)
     cloned_board[input_coord[0], input_coord[1]] = val
     labeled_board, num_feat = get_masked_array(cloned_board)
-    label_to_be_verified = labeled_board[val]
+    if np.count_nonzero(cloned_board) == cloned_board.size:
+        label_to_be_verified = labeled_board[val-1]
+    else:
+        label_to_be_verified = labeled_board[val]
     feature_number = label_to_be_verified[input_coord[0], input_coord[1]]
     feature_length = np.count_nonzero(label_to_be_verified == feature_number)
     if feature_length > val:
@@ -330,10 +333,29 @@ def mask_board(board, level):
         for [i, j] in chosen_zero_coord:
             masked_board[i][j] = board[i][j]
 
-    return masked_board
+    board_to_be_displayed = copy.deepcopy(masked_board)
+
+    if level == 2:
+        board_to_be_displayed = np.array(board_to_be_displayed, dtype=object)
+        randomly_choosing_point_to_mask = random.choice(chosen_zero_coord)
+        number_to_be_masked = board_to_be_displayed[randomly_choosing_point_to_mask[0]][randomly_choosing_point_to_mask[1]]
+        feature_number = labeled_array[number_to_be_masked-1][randomly_choosing_point_to_mask[0]][randomly_choosing_point_to_mask[1]]
+        feature_coordinates = np.where(labeled_array[number_to_be_masked-1] == feature_number)
+        list_feature_coordinates = [[feature_coordinates[0][i], feature_coordinates[1][i]] for i in range(len(feature_coordinates[0]))]
+        print('randomly_choosing_point_to_mask', randomly_choosing_point_to_mask)
+        list_feature_coordinates.remove(randomly_choosing_point_to_mask)
+        print('feature coordinates', list_feature_coordinates)
+        for [i, j] in list_feature_coordinates:
+            if board_to_be_displayed[i][j] != 0:
+                print('I am here')
+                board_to_be_displayed[i][j] = 'x'
+                board_to_be_displayed[randomly_choosing_point_to_mask[0]][randomly_choosing_point_to_mask[1]] = 'x'
+                break
+
+    return masked_board, board_to_be_displayed
 
 
-def game(original_player_board, board, list_features):
+def game(original_player_board, displaying_board, board, list_features):
     """
     This is the main interface function,
     This function calls the input functions, calls the validity function and
@@ -341,27 +363,36 @@ def game(original_player_board, board, list_features):
     It prints the outcome of the game - if the solution is correct, the game stops
     if not, it asks for prompt and starts a new input from the player
     :param original_player_board:
+    :param displaying_board:
     :param board:
     :return: Outcome
     """
-    player_board = copy.deepcopy(original_player_board)
+    # player_board = copy.deepcopy(original_player_board)
+    player_board = copy.deepcopy(displaying_board)
     print("Starting board")
     print(player_board)
 
+    player_board_to_be_checked = copy.deepcopy(original_player_board)
+
+    board_shape = player_board_to_be_checked.shape
+
     # immutable cells - player cannot replace these cells
     fixed_cells = np.nonzero(player_board)
-    fixed_cell_list = [(fixed_cells[0][i], fixed_cells[1][i]) for i in range(len(fixed_cells[0]))]
+    fixed_cell_list = [(fixed_cells[0][i], fixed_cells[1][i]) for i in range(len(fixed_cells[0])) if player_board[fixed_cells[0][i]][fixed_cells[1][i]] != 'x']
     while np.size(player_board) - np.count_nonzero(player_board) != 0:
         coord_added = input_coordinates()
         row, col, val = coord_added[0], coord_added[1], coord_added[2]
         # Check if the entered input is not in the fixed cell list
-        if (row, col) in fixed_cell_list:
+        if row < 0 or row >= board_shape[0] or col < 0 or col >= board_shape[1]:
+            print("The input coordinate entered is outside board size. Please try again..")
+        elif (row, col) in fixed_cell_list:
             print("This cell cannot be modified.. Please try again..")
         else:
             # Check if the entered value is continous
-            if check_continuity(player_board, coord_added):
-                if check_number_of_cells(player_board, coord_added):
+            if check_continuity(player_board_to_be_checked, coord_added):
+                if check_number_of_cells(player_board_to_be_checked, coord_added):
                     player_board[row, col] = val
+                    player_board_to_be_checked[row, col] = val
                     print("Player updated board")
                     print(player_board)
                 else:
@@ -384,6 +415,6 @@ if __name__ == '__main__':
     print(board)
     # num_rows, num_cols = 4, 4
     # board = np.array([[3, 3, 2, 2], [3, 1, 3, 3], [1, 4, 4, 3], [2, 2, 4, 4]])
-    original_player_board = mask_board(board, level)
-    game(original_player_board, board, list_features)
+    original_player_board, board_to_be_displayed = mask_board(board, level)
+    game(original_player_board, board_to_be_displayed, board, list_features)
 
