@@ -33,30 +33,26 @@ def get_masked_array(board):
     return labeled_array, num_features
 
 
-def shuffle_digits(list_digits):
+def check_board_valid(grid, list_digits):
     """
-    This function takes the list of digits and shuffles them in such a way that the neighbouring list
-    is not same as the current list. This would help when we are adding the numbers in the matrix, we can
-    avoid horizontally adjoining regions
+
+    :param grid:
     :param list_digits:
-    :return: list of lists with different element in the neighbouring list
+    :return:
     """
-    result = []
-    len_result = len(result)
+    labeled_array, num_features = get_masked_array(grid)
+    elements = np.unique(grid)
+    is_grid_valid = True
+    for idx, i in enumerate(elements):
+        if list_digits.count(i) / i != num_features[idx]:
+            is_grid_valid = is_grid_valid and False
+        else:
+            for j in range(1, num_features[idx] + 1):
+                counter_board = labeled_array[idx] == j
+                if np.count_nonzero(counter_board) != i:
+                    is_grid_valid = is_grid_valid and False
 
-    duplicate_list = copy.deepcopy(list_digits)
-    print(duplicate_list)
-
-    while len(result) < len(list_digits):
-        elem = random.choice(duplicate_list)
-        if len_result == 0:
-            result.append(elem)
-            duplicate_list.pop(duplicate_list.index(elem))
-        elif elem != result[-1]:
-            result.append(elem)
-            duplicate_list.pop(duplicate_list.index(elem))
-
-    return result
+    return is_grid_valid
 
 
 def generate_board(num_rows, num_columns):
@@ -67,17 +63,23 @@ def generate_board(num_rows, num_columns):
     :param num_columns: integer indicating number of rows
     :return: Returns a 2d array of the required size Game board
     """
+    print("Waiting for board to be generated .............")
     list_digits_2d = generate_possible_numbers(num_rows, num_columns)
     is_grid_valid = False
     iteration = 0
     while not is_grid_valid:
+        # shuffle the 2d list of all possible combinations
         random.shuffle(list_digits_2d)
+        # convert the 2d list into a 1d list
         list_digits = [j for i in list_digits_2d for j in i]
         grid = np.zeros((num_rows, num_columns), int)
+        # counter to keep a track of number of grid positions filled
         counter = 0
+        # grid position not filled is a 2d array to keep track of all positions not filled
         grid_positions_not_filled = [[x, y] for x in range(num_rows) for y in range(num_columns)]
-        print('I am here ', (iteration + 1))
+        # print('I am here ', (iteration + 1))
         while len(grid_positions_not_filled) > 0:
+            # Take the 1st empty element of the grid
             x = grid_positions_not_filled[0][0]
             y = grid_positions_not_filled[0][1]
             if grid[x, y] == 0:
@@ -106,9 +108,6 @@ def generate_board(num_rows, num_columns):
                             else:
                                 j = 1
                         elif len(neighbor) == 0:
-                            grid[coord[0], coord[1]] = 0
-                            grid_positions_not_filled.append([coord[0], coord[1]])
-                            counter -= 1
                             previous_coord.popitem()
                             if len(previous_coord) > 0:
                                 neighbors_prev = previous_coord.get(list(previous_coord.keys())[-1])
@@ -127,34 +126,22 @@ def generate_board(num_rows, num_columns):
                                     j = 1
                             else:
                                 grid[coord[0], coord[1]] = 1
-                                grid_positions_not_filled.remove([coord[0], coord[1]])
+                                try:
+                                    ind = list_digits.index(1, counter-1, len(list_digits)-1)
+                                    del list_digits[ind]
+                                    list_digits.insert(counter-1, 1)
+                                except ValueError:
+                                    j = 1
                                 j = 1
                 else:
                     grid[x, y] = 1
                     grid_positions_not_filled.remove([x, y])
                     counter += 1
-        print('Grid Generated = ')
-        print(grid)
         is_grid_valid = True
-        labeled_array, num_features = get_masked_array(grid)
-        elements = np.unique(grid)
-        print('I am getting features', num_features)
-        for idx, i in enumerate(elements):
-            if i == 1:
-                continue
-            else:
-                if list_digits.count(i)/i != num_features[idx]:
-                    print('Oops! Seems like the grid is not the best!')
-                    is_grid_valid = is_grid_valid and False
-                else:
-                    for j in range(1, num_features[idx]+1):
-                        counter_board = labeled_array[idx] == j
-                        if np.count_nonzero(counter_board) != i:
-                            is_grid_valid = is_grid_valid and False
-
+        is_grid_valid = is_grid_valid and check_board_valid(grid, list_digits)
         if not is_grid_valid:
             iteration += 1
-    return grid
+    return grid, list_digits, iteration
 
 
 def game_level():
@@ -165,7 +152,7 @@ def game_level():
     game_option = click.prompt('Please select difficulty level: \n \
         Enter 1 for easy (10 X 5) \n  \
         Enter 2 for medium (10 X 10) \n \
-        Enter 3 for difficult (20 X 20)', type=click.IntRange(1, 3))
+        Enter 3 for difficult (10 X 15)', type=click.IntRange(1, 3))
     if game_option == 1:
         m = 10
         n = 5
@@ -173,8 +160,8 @@ def game_level():
         m = 10
         n = 10
     else:
-        m = 20
-        n = 20
+        m = 10
+        n = 15
     return m, n
 
 
@@ -301,7 +288,7 @@ def generate_possible_numbers(grid_row, grid_col):
     """
     if grid_col == 5:
         total_digits = 6
-    elif grid_row == 20:
+    elif grid_row == 15:
         total_digits = 9
     else:
         total_digits = 9
@@ -309,7 +296,7 @@ def generate_possible_numbers(grid_row, grid_col):
     region_size = 0
     num_list = []
     # counter = 1
-    while region_size <= 0.95*grid_size:
+    while region_size <= 0.90*grid_size:
         for i in range(2, total_digits+1):
             # for j in range(math.floor(counter*(grid_size-region_size)/(total_digits-1)/i)):
             for j in range(math.floor((grid_size - region_size) / (total_digits - 1) / i)):
@@ -320,9 +307,8 @@ def generate_possible_numbers(grid_row, grid_col):
         else:
             region_size = a
             # counter += 1
-        print(region_size)
 
-    # num_list.extend([[1]] * (grid_size-region_size))
+    num_list.extend([[1]] * (grid_size-region_size))
 
     return num_list
 
@@ -348,8 +334,7 @@ def mask_board(board):
     return masked_board
 
 
-
-def game(original_player_board, board):
+def game(original_player_board, board, list_features):
     """
     This is the main interface function,
     This function calls the input functions, calls the validity function and
@@ -381,8 +366,8 @@ def game(original_player_board, board):
                 print(player_board)
             else:
                 print("Continuity check failed, please try again")
-    # Todo need to implement the number of continous elements functions, currently it has too many input pararmeters
-    if is_correct_solution(current_board=player_board, solution=board):
+    # TODO: need to implement the number of continous elements functions, currently it has too many input pararmeters
+    if check_board_valid(player_board, list_features):
         print("Congratulations, You have successfully solved the puzzle!!!")
     else:
         print("Sorry, your solution is incorrect")
@@ -393,11 +378,14 @@ def game(original_player_board, board):
 
 if __name__ == '__main__':
     num_rows, num_cols = game_level()
-    board = generate_board(num_rows, num_cols)
+    board, list_features, iteration = generate_board(num_rows, num_cols)
+    print("No. of iterations to generate the board = ", iteration)
+    print('Board Generated = ')
+    print(board)
     # num_rows, num_cols = 4, 4
     # board = np.array([[3, 3, 2, 2], [3, 1, 3, 3], [1, 4, 4, 3], [2, 2, 4, 4]])
     original_player_board = mask_board(board)
-    game(original_player_board, board)
+    game(original_player_board, board, list_features)
     # Todo currently, the game checks for solutions when all the empty cells are filled,
     #  however, if the player wants to change only couple of filled cells, it cannot happen after all cells are filled.
     #  Can work on another prompt - but need to modify the while loop in game function
