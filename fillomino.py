@@ -149,29 +149,23 @@ def game_level():
     Takes user input on the game level and returns the size of the corresponding board
     :return: row and column size of the board
     """
-    # game_option = click.prompt('Please select difficulty level: \n \
-    #     Enter 1 for easy (10 X 5) \n  \
-    #     Enter 2 for medium (10 X 10) \n \
-    #     Enter 3 for difficult (10 X 15)', type=click.IntRange(1, 3))
+    game_option = click.prompt('Please select grid size: \n \
+         Enter 1 for (10 X 5) \n  \
+         Enter 2 for  (10 X 10)' , type=click.IntRange(1, 2))
 
-    game_option = click.prompt('Please select difficulty level: \n \
+    game_difficulty = click.prompt('Please select difficulty level: \n \
         Enter 1 for easy \n  \
         Enter 2 for medium \n \
         Enter 3 for difficult', type=click.IntRange(1, 3))
 
-    m = 10
-    n = 5
+    if game_option == 1:
+        m = 10
+        n = 5
+    else:
+        m = 10
+        n = 10
 
-    # if game_option == 1:
-    #     m = 10
-    #     n = 5
-    # elif game_option == 2:
-    #     m = 10
-    #     n = 10
-    # else:
-    #     m = 10
-    #     n = 15
-    return m, n, game_option
+    return m, n, game_difficulty
 
 
 def is_correct_solution(current_board, solution):
@@ -202,11 +196,11 @@ def input_coordinates():
     """
     coord = click.prompt('Enter the the cell to be filled in the format\n  row, col, value')
     val = coord.split(',')
-    # TODO validation on only int input within range of m and n needs to be implemented
+
     input_coord = [int(x) for x in val]
     if len(input_coord) != 3:
         print("Wrong input, try again")
-        input_coordinates()
+        return input_coordinates()
     return input_coord
 
 
@@ -348,8 +342,8 @@ def mask_board(board, level):
         for [i, j] in list_feature_coordinates:
             if board_to_be_displayed[i][j] != 0:
 
-                board_to_be_displayed[i][j] = 'x'
-                board_to_be_displayed[randomly_choosing_point_to_mask[0]][randomly_choosing_point_to_mask[1]] = 'x'
+                board_to_be_displayed[i][j] = 'X'
+                board_to_be_displayed[randomly_choosing_point_to_mask[0]][randomly_choosing_point_to_mask[1]] = 'X'
                 break
 
     return masked_board, board_to_be_displayed
@@ -390,7 +384,7 @@ def game(original_player_board, displaying_board, board, list_features):
 
     # immutable cells - player cannot replace these cells
     fixed_cells = np.nonzero(player_board)
-    fixed_cell_list = [(fixed_cells[0][i], fixed_cells[1][i]) for i in range(len(fixed_cells[0])) if player_board[fixed_cells[0][i]][fixed_cells[1][i]] != 'x']
+    fixed_cell_list = [(fixed_cells[0][i], fixed_cells[1][i]) for i in range(len(fixed_cells[0])) if player_board[fixed_cells[0][i]][fixed_cells[1][i]] != 'X']
     while np.size(player_board) - np.count_nonzero(player_board) != 0:
         coord_added = input_coordinates()
         row, col, val = coord_added[0], coord_added[1], coord_added[2]
@@ -419,12 +413,56 @@ def game(original_player_board, displaying_board, board, list_features):
             game(original_player_board, board)
 
 
+ten_board = np.array([[8, 8, 8, 8, 1, 5, 5, 5, 9, 9],
+                      [8, 1, 8, 8, 6, 6, 5, 5, 9, 9],
+                      [3, 3, 1, 8, 1, 6, 6, 9, 9, 1],
+                      [3, 1, 9, 9, 9, 6, 6, 9, 9, 2],
+                      [9, 9, 9, 9, 9, 9, 1, 9, 1, 2],
+                      [1, 4, 4, 4, 1, 4, 4, 1, 7, 7],
+                      [9, 9, 1, 4, 7, 1, 4, 4, 7, 7],
+                      [9, 9, 9, 7, 7, 2, 7, 7, 7, 1],
+                      [1, 9, 9, 7, 7, 2, 6, 6, 6, 6],
+                      [9, 9, 1, 7, 7, 1, 6, 1, 6, 1]])
+
+
+def generate_ten_board(board10):
+    """
+     https://stackoverflow.com/questions/16856788/slice-2d-array-into-smaller-2d-arrays
+     https://stackoverflow.com/questions/32838802/numpy-with-python-convert-3d-array-to-2d
+    :param board10:
+    :return:
+    """
+    original_board10 = copy.deepcopy(board10)
+    unique, counts = np.unique(board10, return_counts=True)
+    list_features_2d = [[x] * x for idx, x in enumerate(unique) for i in range(counts[idx] // x)]
+    list_features = [j for i in list_features_2d for j in i]
+    board100 = original_board10.reshape(5, 2, -1, 2).swapaxes(1, 2).reshape(-1, 2, 2)
+    grid_valid = False
+    iter_val = 0
+    while (not grid_valid) | iter_val < 1000:
+        split_board = copy.deepcopy(board100)
+        random.shuffle(split_board)
+        result_board = split_board.transpose(2, 0, 1).reshape(10, -1)
+        grid_valid = check_board_valid(result_board, list_features)
+        iter_val += 1
+
+    if iter_val == 1000:
+        to_rot = random.randint(1, 4)
+        return np.rot90(board10, to_rot), list_features
+
+    return result_board, list_features
+
+
 if __name__ == '__main__':
     num_rows, num_cols, level = game_level()
-    board, list_features, iteration = generate_board(num_rows, num_cols)
-    print("No. of iterations to generate the board = ", iteration)
+    if num_cols == 5:
+        board, list_features, iteration = generate_board(num_rows, num_cols)
+        print("No. of iterations to generate the board = ", iteration)
+    else:
+        board, list_features = generate_ten_board(ten_board)
     print('Board Generated = ')
     print(board)
+
     # num_rows, num_cols = 4, 4
     # board = np.array([[3, 3, 2, 2], [3, 1, 3, 3], [1, 4, 4, 3], [2, 2, 4, 4]])
     original_player_board, board_to_be_displayed = mask_board(board, level)
