@@ -342,17 +342,29 @@ def mask_board(board, level):
         feature_number = labeled_array[number_to_be_masked-1][randomly_choosing_point_to_mask[0]][randomly_choosing_point_to_mask[1]]
         feature_coordinates = np.where(labeled_array[number_to_be_masked-1] == feature_number)
         list_feature_coordinates = [[feature_coordinates[0][i], feature_coordinates[1][i]] for i in range(len(feature_coordinates[0]))]
-        print('randomly_choosing_point_to_mask', randomly_choosing_point_to_mask)
+
         list_feature_coordinates.remove(randomly_choosing_point_to_mask)
-        print('feature coordinates', list_feature_coordinates)
+
         for [i, j] in list_feature_coordinates:
             if board_to_be_displayed[i][j] != 0:
-                print('I am here')
+
                 board_to_be_displayed[i][j] = 'x'
                 board_to_be_displayed[randomly_choosing_point_to_mask[0]][randomly_choosing_point_to_mask[1]] = 'x'
                 break
 
     return masked_board, board_to_be_displayed
+
+
+
+def display_board(board):
+    """
+    :param board:
+    :return:
+    """
+    print("   ", "   ".join([str(x) for x in range(board.shape[1])]))
+    # print(" ", "".join(['----' for x in range(board.shape[1])]))
+    for i, x in enumerate(board):
+        print(i, ":", " ".join([str(y)+' |' for y in x]))
 
 
 def game(original_player_board, displaying_board, board, list_features):
@@ -370,7 +382,7 @@ def game(original_player_board, displaying_board, board, list_features):
     # player_board = copy.deepcopy(original_player_board)
     player_board = copy.deepcopy(displaying_board)
     print("Starting board")
-    print(player_board)
+    display_board(player_board)
 
     player_board_to_be_checked = copy.deepcopy(original_player_board)
 
@@ -394,7 +406,7 @@ def game(original_player_board, displaying_board, board, list_features):
                     player_board[row, col] = val
                     player_board_to_be_checked[row, col] = val
                     print("Player updated board")
-                    print(player_board)
+                    display_board(player_board)
                 else:
                     print("This number exceeds the allowed length for the region.. Please try again..")
             else:
