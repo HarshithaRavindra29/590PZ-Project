@@ -439,14 +439,14 @@ def generate_ten_board(board10):
     board100 = original_board10.reshape(5, 2, -1, 2).swapaxes(1, 2).reshape(-1, 2, 2)
     grid_valid = False
     iter_val = 0
-    while (not grid_valid) | iter_val < 1000:
+    while (not grid_valid) | iter_val < 10000:
         split_board = copy.deepcopy(board100)
         random.shuffle(split_board)
         result_board = split_board.transpose(2, 0, 1).reshape(10, -1)
         grid_valid = check_board_valid(result_board, list_features)
         iter_val += 1
 
-    if iter_val == 1000:
+    if iter_val == 10000:
         to_rot = random.randint(1, 4)
         return np.rot90(board10, to_rot), list_features
 
