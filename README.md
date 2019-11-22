@@ -22,9 +22,9 @@ The game has three levels, Easy, Medium and Hard.\
 - copy
 
 # Implementation:
-- Our program generates a grid of varied size and levels based on user's choice
-      - Grid Size: 10 x 5, 10 x 10
-      - Game Level: Easy, Medium, Hard
+- Our program generates a grid of varied size and levels based on user's choice\
+      - Grid Size: 10 x 5, 10 x 10\
+      - Game Level: Easy, Medium, Hard\
      
 - The program initially generates a valid board using Depth First Search where it iterates over each cell and fills it to form variety of continuous regions. Choosing of neighbors for a given cell is done randomly.
 - Each time a board is generated, it is checked for validity and the process continues till a valid board is generated.
