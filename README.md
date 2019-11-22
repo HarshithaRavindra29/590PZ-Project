@@ -9,7 +9,7 @@ Fillomino game was published in 1994 by Nikoli (Japanese Magazine). It is played
 
 # Variation
 The game has three levels, Easy, Medium and Hard. In easy level, more clues are exposed which is similar to the conventional Filomino game.\
-For the medium level, a new variation is included. The number of clues given is less than the Easy puzzle but some (2) of the clues are masked as 'X's. The player would then know that the values in the cells marked as 'X' is the same. 
+In the medium level, a new variation is introduced. The number of clues given is less than the Easy puzzle but some (2) of the clues are masked as 'X's. The player would then know that the values in the cells marked as 'X' is the same. 
 In the Hard level, only 1 clue of each region/ polymino is exposed. 
 
 # Libraries used
