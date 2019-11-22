@@ -196,8 +196,11 @@ def input_coordinates():
     """
     coord = click.prompt('Enter the the cell to be filled in the format\n  row, col, value')
     val = coord.split(',')
-
-    input_coord = [int(x) for x in val]
+    try:
+        input_coord = [int(x) for x in val]
+    except Exception:
+        print("Wrong input, try again")
+        return input_coordinates()
     if len(input_coord) != 3:
         print("Wrong input, try again")
         return input_coordinates()
