@@ -408,7 +408,7 @@ def game(original_player_board, displaying_board, board, list_features):
                     print("This number exceeds the allowed length for the region.. Please try again..")
             else:
                 print("Continuity check failed, please try again")
-    if check_board_valid(player_board, list_features):
+    if check_board_valid(player_board_to_be_checked, list_features):
         print("Congratulations, You have successfully solved the puzzle!!!")
     else:
         print("Sorry, your solution is incorrect")
