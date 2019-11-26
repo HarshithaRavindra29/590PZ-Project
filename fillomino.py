@@ -167,7 +167,7 @@ def game_level():
 
     return m, n, game_difficulty
 
-
+#Marking this to be removed
 def is_correct_solution(current_board, solution):
     """
     Method returns a boolean value indicating if the solution is correct based on the following:
