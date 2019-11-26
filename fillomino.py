@@ -413,7 +413,7 @@ def game(original_player_board, displaying_board, board, list_features):
     else:
         print("Sorry, your solution is incorrect")
         if click.confirm("Do you want to give it another try?"):
-            game(original_player_board, board)
+            game(original_player_board, displaying_board, board, list_features)
 
 
 ten_board = np.array([[8, 8, 8, 8, 1, 5, 5, 5, 9, 9],
